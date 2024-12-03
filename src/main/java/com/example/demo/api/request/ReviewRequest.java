@@ -9,9 +9,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MenuRequest {
+public class ReviewRequest {
 
-    private String name;
+    private Long restaurantId;
+    private String content;
+    private Double score;
 
-    private Integer price;
 }

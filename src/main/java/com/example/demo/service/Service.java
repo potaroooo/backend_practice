@@ -1,13 +1,17 @@
 package com.example.demo.service;
 
 import com.example.demo.api.request.RestaurantRequest;
+import com.example.demo.api.request.ReviewRequest;
+import com.example.demo.api.response.RestaurantDetailedResponse;
+import com.example.demo.api.response.RestaurantResponse;
 import com.example.demo.entity.Menu;
 import com.example.demo.entity.Restaurant;
+import com.example.demo.entity.Review;
 import com.example.demo.repository.MenuRepository;
 import com.example.demo.repository.RestaurantRepository;
 import com.example.demo.repository.ReviewRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -22,9 +26,18 @@ public class Service {
 
     private final ReviewRepository reviewRepository;
 
-    @Transactional
-    public List<Restaurant> getRestaurants() {
-        return restaurantRepository.findAll();
+
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getRestaurants() {
+        List<Restaurant> restaurants = restaurantRepository.findAll();
+        return restaurants.stream().map(restaurant -> RestaurantResponse.builder()
+                .id(restaurant.getId())
+                .name(restaurant.getName())
+                .address(restaurant.getAddress())
+                .createdAt(restaurant.getCreatedAt())
+                .updatedAt(restaurant.getUpdatedAt())
+                .build()
+                ).toList();
     }
 
     @Transactional
@@ -53,13 +66,29 @@ public class Service {
         return restaurant;
     }
 
-    @Transactional
-    public RestaurantRequest getRestaurant(
+    @Transactional(readOnly = true)
+    public RestaurantDetailedResponse getRestaurantDetail(
             final Long restaurantId
     ) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RuntimeException("존재하지 않는 레스토랑입니다."));
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow();
         List<Menu> menus = menuRepository.findAllByRestaurantId(restaurantId);
-        return new RestaurantRequest(restaurant.getName(), restaurant.getAddress(), menus);
+        return RestaurantDetailedResponse.builder()
+                .id(restaurant.getId())
+                .name(restaurant.getName())
+                .address((restaurant.getAddress()))
+                .createdAt(restaurant.getCreatedAt())
+                .updatedAt(restaurant.getUpdatedAt())
+                .menus(
+                        menus.stream().map(menu -> RestaurantDetailedResponse.Menu.builder()
+                                        .id(menu.getId())
+                                        .name(menu.getName())
+                                        .price(menu.getPrice())
+                                        .createdAt(menu.getCreatedAt())
+                                        .updatedAt(menu.getUpdatedAt())
+                                        .build()
+                        ).toList()
+                )
+                .build();
     }
 
     @Transactional
@@ -92,5 +121,34 @@ public class Service {
         restaurantRepository.deleteById(restaurantId);
         List<Menu> menus = menuRepository.findAllByRestaurantId(restaurantId);
         menuRepository.deleteAll(menus);
+        List<Review> reviews = reviewRepository.findAllByRestaurantId(restaurantId);
+        reviewRepository.deleteAll(reviews);
+    }
+
+    @Transactional
+    public void createReview(
+        final ReviewRequest request
+    ) {
+        Review review = Review.builder()
+                .restaurantId(request.getRestaurantId())
+                .score(request.getScore())
+                .content(request.getContent())
+                .createdAt(ZonedDateTime.now())
+                .build();
+        reviewRepository.save(review);
+    }
+
+    @Transactional
+    public void deleteReview(
+        final Long reviewId
+    ) {
+        reviewRepository.deleteById(reviewId);
+    }
+
+    @Transactional(readOnly = true)
+    public void getRestaurantReviews(
+
+    ) {
+
     }
 }

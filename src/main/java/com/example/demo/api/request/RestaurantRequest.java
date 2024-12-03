@@ -15,9 +15,7 @@ import java.util.List;
 public class RestaurantRequest {
 
     private String name;
-
     private String address;
-
     private List<Menu> menus;
 
 }
