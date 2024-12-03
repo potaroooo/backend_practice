@@ -1,14 +1,21 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 
+@Builder
 @Entity
 @Table(name = "Menu")
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Menu {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,9 +24,9 @@ public class Menu {
 
     private String name;
 
-    private String address;
+    private Integer price;
 
-    private Timestamp createdAt;
+    private ZonedDateTime createdAt;
 
-    private Timestamp updatedAt;
+    private ZonedDateTime updatedAt;
 }
