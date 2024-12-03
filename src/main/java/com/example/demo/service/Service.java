@@ -4,6 +4,7 @@ import com.example.demo.api.request.RestaurantRequest;
 import com.example.demo.api.request.ReviewRequest;
 import com.example.demo.api.response.RestaurantDetailedResponse;
 import com.example.demo.api.response.RestaurantResponse;
+import com.example.demo.api.response.RestaurantReviewResponse;
 import com.example.demo.entity.Menu;
 import com.example.demo.entity.Restaurant;
 import com.example.demo.entity.Review;
@@ -11,6 +12,8 @@ import com.example.demo.repository.MenuRepository;
 import com.example.demo.repository.RestaurantRepository;
 import com.example.demo.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
@@ -25,7 +28,6 @@ public class Service {
     private final MenuRepository menuRepository;
 
     private final ReviewRepository reviewRepository;
-
 
     @Transactional(readOnly = true)
     public List<RestaurantResponse> getRestaurants() {
@@ -118,7 +120,8 @@ public class Service {
     public void deleteRestaurant(
         final Long restaurantId
     ) {
-        restaurantRepository.deleteById(restaurantId);
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow();
+        restaurantRepository.delete(restaurant);
         List<Menu> menus = menuRepository.findAllByRestaurantId(restaurantId);
         menuRepository.deleteAll(menus);
         List<Review> reviews = reviewRepository.findAllByRestaurantId(restaurantId);
@@ -129,8 +132,9 @@ public class Service {
     public void createReview(
         final ReviewRequest request
     ) {
+        Restaurant restaurant = restaurantRepository.findById(request.getRestaurantId()).orElseThrow();
         Review review = Review.builder()
-                .restaurantId(request.getRestaurantId())
+                .restaurantId(restaurant.getId())
                 .score(request.getScore())
                 .content(request.getContent())
                 .createdAt(ZonedDateTime.now())
@@ -142,13 +146,26 @@ public class Service {
     public void deleteReview(
         final Long reviewId
     ) {
-        reviewRepository.deleteById(reviewId);
+        Review review = reviewRepository.findById(reviewId).orElseThrow();
+        reviewRepository.delete(review);
     }
 
     @Transactional(readOnly = true)
-    public void getRestaurantReviews(
-
+    public RestaurantReviewResponse getRestaurantReviews(
+        final Long restaurantId, Pageable page
     ) {
-
+        Double avgScore = reviewRepository.getAvgScoreByRestaurantId(restaurantId);
+        Slice<Review> reviews = reviewRepository.findSliceByRestaurantId(restaurantId, page);
+        return RestaurantReviewResponse.builder()
+                .avgScore(avgScore)
+                .reviews(reviews.getContent())
+                .page(
+                        RestaurantReviewResponse.ReviewResponsePage.builder()
+                                .offset(page.getPageNumber() * page.getPageSize())
+                                .limit(page.getPageSize())
+                                .build()
+                )
+                .build();
     }
+
 }

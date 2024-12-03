@@ -23,10 +23,13 @@ public class RestaurantDetailedResponse {
     @Setter
     @AllArgsConstructor
     public static class Menu {
+
         private final Long id;
         private final String name;
         private final Integer price;
         private final ZonedDateTime createdAt;
         private final ZonedDateTime updatedAt;
+
     }
+
 }

@@ -4,8 +4,10 @@ import com.example.demo.api.request.RestaurantRequest;
 import com.example.demo.api.request.ReviewRequest;
 import com.example.demo.api.response.RestaurantDetailedResponse;
 import com.example.demo.api.response.RestaurantResponse;
+import com.example.demo.api.response.RestaurantReviewResponse;
 import com.example.demo.service.Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -65,8 +67,12 @@ public class Api {
     }
 
     @GetMapping("/restaurant/{restaurantId}/reviews")
-        public void getRestaurantReviews(
-                @PathVariable(name = "restaurantId") Long restaurantId
+        public RestaurantReviewResponse getRestaurantReviews(
+                @PathVariable(name = "restaurantId") Long restaurantId,
+                @RequestParam("offset") Integer offset,
+                @RequestParam("limit") Integer limit
     ) {
+        return service.getRestaurantReviews(restaurantId, PageRequest.of(offset / limit, limit));
     }
+
 }

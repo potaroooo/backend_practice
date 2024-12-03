@@ -19,13 +19,9 @@ public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
-
     private String address;
-
     private ZonedDateTime createdAt;
-
     private ZonedDateTime updatedAt;
 
     public void updateNameAndAddress(final String name, final String address) {
@@ -33,4 +29,5 @@ public class Restaurant {
         this.address = address;
         this.updatedAt = ZonedDateTime.now();
     }
+
 }
